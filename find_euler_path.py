@@ -6,14 +6,14 @@ from postman_problems.solver import cpp
 from postman_problems.stats import calculate_postman_solution_stats
 from pyproj import Geod
 
-def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.graphml', method = "base", length_unit = "miles"):
+def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.graphml', method = "fleury", length_unit = "miles"):
     """
     Modifies a graph by finding an Euler path and writing the modified graph to a GraphML file.
 
     Parameters:
     - graphml_input (str): Path to the input GraphML file.
     - dest (str): Path to the output GraphML file.
-    - method (str): Method for Eulerization. Can be "base" or "min_weights".
+    - method (str): Method for Eulerization. Can be "fleury" or "min_weights".
     - length_unit (str): Unit of length for calculating distances.
 
     Returns:
@@ -23,7 +23,7 @@ def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.
     if method == "min_weights":
         euler_G = eulerize_minimize_weights(G)
     else:
-        euler_G = eulerize_base(G)
+        euler_G = eulerize_fleury(G)
     circuit = list(nx.eulerian_circuit(euler_G))
     nx.write_graphml(nx.MultiDiGraph(circuit), dest) 
     new_G = nx.MultiDiGraph()
@@ -46,7 +46,7 @@ def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.
     circuit_length_multiplier = total_distance / old_length
     return [total_distance, old_length, circuit_length_multiplier, "artificial edges: " + str(artificial_edges)]
 
-def eulerize_base(G):
+def eulerize_fleury(G):
     """
     Eulerizes a graph by adding edges to make it Eulerian.
     Doesn't add an edge between nodes that dont already have a single edge between them
