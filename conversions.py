@@ -8,6 +8,7 @@ import scipy as sp
 import json
 import re 
 import osmnx as ox
+from find_euler_path import calculate_distance_raw
 from shapely.geometry import MultiLineString, LineString
 
 def convert_to_graph_road_nodes(geojson_file, dest = 'new_graph.graphml'):
@@ -25,6 +26,20 @@ def convert_to_graph_road_nodes(geojson_file, dest = 'new_graph.graphml'):
     nx.write_graphml(G, dest)
 
 def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml', formatted_road_name = 'FullStName', has_properties = True, length_unit = "Miles"):
+    """
+    Converts a GeoJSON file containing road data into a NetworkX graph with road edges.
+
+    Parameters:
+    - geojson_file (str): The path to the GeoJSON file.
+    - dest (str): The destination path to save the resulting graph file (default: 'new_graph.graphml').
+    - formatted_road_name (str): The name of the road property in the GeoJSON file (default: 'FullStName').
+    - has_properties (bool): Indicates whether the GeoJSON file has road properties (default: True).
+    - length_unit (str): The unit of length for calculating road distances (default: 'Miles').
+
+    Returns:
+    - None
+
+    """
     # Load the GeoJSON file
     gdf = gpd.read_file(geojson_file)
 
@@ -40,16 +55,35 @@ def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml', format
             line = list(geometry)
 
         for linestring in line:
-            for start, target in zip(list(linestring.coords[:-1]), list(linestring.coords[1:])):
+            for source, target in zip(list(linestring.coords[:-1]), list(linestring.coords[1:])):
                 if has_properties:
-                    G.add_edge(start, target, name = road[formatted_road_name], length = road[length_unit])
+                    rd_name = road[formatted_road_name]
                 else:
-                    G.add_edge(start, target, name = 'unnamed', length = 1)
+                    rd_name = "unnamed"
+                G.add_edge(source,
+                           target,
+                           name = rd_name,
+                           length = calculate_distance_raw(source[0],
+                                                           source[1],
+                                                           target[0],
+                                                           target[1],
+                                                           in_init_length_unit = length_unit))
 
     # Save the graph to a GraphML file
     nx.write_graphml(G, dest)
 
 def convert_to_geojson(graphml_file, dest = 'output_geojson.geojson', formatted_road_name = 'FullStName'):
+    """
+    Convert a GraphML file to GeoJSON format.
+
+    Args:
+        graphml_file (str): The path to the GraphML file.
+        dest (str, optional): The destination path for the GeoJSON output file. Defaults to 'output_geojson.geojson'.
+        formatted_road_name (str, optional): The column name for the road name in the GeoJSON file. Defaults to 'FullStName'.
+
+    Returns:
+        None
+    """
     G = nx.read_graphml(graphml_file)
     gdf = gpd.GeoDataFrame(columns = ['order', formatted_road_name, "length", 'heading', 'geometry'])
     order = 0 # count for each road to be taken to follow eularian path. Later used to label each road

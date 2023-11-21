@@ -6,6 +6,18 @@ import matplotlib.pyplot as plt
 
 
 def plot(geojson_file, time_delay = 0, arrow_spacing = 15):
+    """
+    Plots the lines from a GeoJSON file and adds arrows to represent the direction of the lines.
+    Supports delay while graphing to better visualize the direction of path
+
+    Parameters:
+    - geojson_file (str): The path to the GeoJSON file.
+    - time_delay (float): The delay between each line plot in seconds. Default is 0.
+    - arrow_spacing (int): The spacing between arrows. Only every `arrow_spacing` line will have an arrow. Default is 15.
+
+    Returns:
+    None
+    """
     # Load the GeoJSON file
     gdf = gpd.read_file(geojson_file)
 
@@ -44,7 +56,8 @@ def plot(geojson_file, time_delay = 0, arrow_spacing = 15):
 
 conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson',
                                         dest = 'forsyth_major_bottom_left_roads.graphml',
-                                        has_properties = True)
+                                        has_properties = True,
+                                        length_unit = 'miles')
 
 total_distance = find_euler_path.modify_graph(graphml_input = 'forsyth_major_bottom_left_roads.graphml',
                                               dest = 'euler_path_output.graphml',

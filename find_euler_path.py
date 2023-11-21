@@ -2,10 +2,21 @@ import ast
 import networkx as nx
 import matplotlib.pyplot as plt
 import heapq
-from math import radians, sin, cos, sqrt, atan2
 from pyproj import Geod
 
 def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.graphml', method = "base", length_unit = "miles"):
+    """
+    Modifies a graph by finding an Euler path and writing the modified graph to a GraphML file.
+
+    Parameters:
+    - graphml_input (str): Path to the input GraphML file.
+    - dest (str): Path to the output GraphML file.
+    - method (str): Method for Eulerization. Can be "base" or "min_weights".
+    - length_unit (str): Unit of length for calculating distances.
+
+    Returns:
+    - list: A list containing the total distance of the Euler path and the number of artificial edges created.
+    """
     G = nx.read_graphml(graphml_input)
     if method == "min_weights":
         euler_G = eulerize_minimize_weights(G)
@@ -21,11 +32,10 @@ def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.
         if (edge_data is None or len(edge_data[0]) == 0 or len(edge_data) == 0 or 'name' not in edge_data[0]):
             road_name = "unnamed"
             artificial_edges += 1
+            init_length = calculate_distance(source, target, init_length_unit = length_unit)
         else:
             road_name = edge_data[0]['name']
-        tup_source = ast.literal_eval(source)
-        tup_target = ast.literal_eval(target)
-        init_length = calculate_distance(tup_source[0], tup_source[1], tup_target[0], tup_target[1], init_length_unit = length_unit)
+            init_length = edge_data[0]['length']
         new_G.add_edge(source, target, name = road_name, length = init_length)
         total_distance += init_length
     
@@ -33,9 +43,29 @@ def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.
     return [total_distance, "artificial edges: " + str(artificial_edges)]
 
 def eulerize_base(G):
+    """
+    Eulerizes a graph by adding edges to make it Eulerian.
+    Doesn't add an edge between nodes that dont already have a single edge between them
+
+    Parameters:
+    G (networkx.Graph): The input graph.
+
+    Returns:
+    networkx.Graph: The Eulerized graph.
+    """
     return nx.eulerize(G)
 
 def eulerize_minimize_weights(old_G):
+    """
+    Eulerize the given graph by adding edges between pairs of odd-degree nodes
+    to minimize the weights of the resulting Eulerian circuit.
+
+    Parameters:
+    old_G (networkx.Graph): The input graph.
+
+    Returns:
+    networkx.Graph: The Eulerized graph.
+    """
     # Create a copy of the graph to avoid modifying the original graph
     G = old_G.copy()
     print("started eulerize_minimize_weights")
@@ -67,9 +97,43 @@ def eulerize_minimize_weights(old_G):
     print("odd degree nodes: ", odd_degree_nodes)
     return nx.eulerize(G)
 
-def calculate_distance(lon1, lat1, lon2, lat2, init_length_unit = "miles"):
+def calculate_distance_raw(lon1, lat1, lon2, lat2, in_init_length_unit = "miles"):
+    """
+    Calculate the distance between two points on the Earth's surface using longitude and latitude coordinates.
+
+    Parameters:
+    lon1 (float): The longitude of the first point.
+    lat1 (float): The latitude of the first point.
+    lon2 (float): The longitude of the second point.
+    lat2 (float): The latitude of the second point.
+    in_init_length_unit (str, optional): The unit of length for the calculated distance. Default is "miles".
+
+    Returns:
+    float: The calculated distance between the two points.
+
+    """
     geod = Geod(ellps = 'WGS84')
     angle1, angle2, distance = geod.inv(lon1, lat1, lon2, lat2)
-    if init_length_unit == "kilometers":
+    if in_init_length_unit == "kilometers":
         return distance / 1000
     return distance / 1609.344
+
+def calculate_distance(source, target, init_length_unit = "miles"):
+    """
+    Calculate the distance between two points.
+
+    Args:
+        source (str): The coordinates of the source point in the format "(latitude, longitude)".
+        target (str): The coordinates of the target point in the format "(latitude, longitude)".
+        init_length_unit (str, optional): The initial length unit. Defaults to "miles".
+
+    Returns:
+        float: The calculated distance between the source and target points.
+    """
+    tup_source = ast.literal_eval(source)
+    tup_target = ast.literal_eval(target)  
+    return calculate_distance_raw(tup_source[0],
+                              tup_source[1],
+                              tup_target[0],
+                              tup_target[1],
+                              in_init_length_unit = init_length_unit)
