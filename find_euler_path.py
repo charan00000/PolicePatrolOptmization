@@ -2,6 +2,8 @@ import ast
 import networkx as nx
 import matplotlib.pyplot as plt
 import heapq
+from postman_problems.solver import cpp
+from postman_problems.stats import calculate_postman_solution_stats
 from pyproj import Geod
 
 def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.graphml', method = "base", length_unit = "miles"):
