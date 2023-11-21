@@ -3,36 +3,34 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import heapq
 from math import radians, sin, cos, sqrt, atan2
+from pyproj import Geod
 
-def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.graphml', method = "base"):
+def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.graphml', method = "base", length_unit = "miles"):
     G = nx.read_graphml(graphml_input)
     if method == "min_weights":
         euler_G = eulerize_minimize_weights(G)
     else:
         euler_G = eulerize_base(G)
     circuit = list(nx.eulerian_circuit(euler_G))
-    #print(circuit)
-    new_G = nx.MultiDiGraph(nx.create_empty_copy(euler_G))
-
+    nx.write_graphml(nx.MultiDiGraph(circuit), dest) 
+    new_G = nx.MultiDiGraph()
+    total_distance = 0
+    artificial_edges = 0
     for source, target in circuit:
         edge_data = euler_G.get_edge_data(source, target)
-        if (len(edge_data[0]) == 0 or len(edge_data) == 0 or 'name' not in edge_data[0]):
+        if (edge_data is None or len(edge_data[0]) == 0 or len(edge_data) == 0 or 'name' not in edge_data[0]):
             road_name = "unnamed"
+            artificial_edges += 1
         else:
             road_name = edge_data[0]['name']
-            new_G.add_edge(source, target, name = road_name, length = edge_data[0]['length'])
-
+        tup_source = ast.literal_eval(source)
+        tup_target = ast.literal_eval(target)
+        init_length = calculate_distance(tup_source[0], tup_source[1], tup_target[0], tup_target[1], init_length_unit = length_unit)
+        new_G.add_edge(source, target, name = road_name, length = init_length)
+        total_distance += init_length
+    
     nx.write_graphml(new_G, dest)
-
-    total_distance = 0
-    for (source, target) in circuit:
-        if new_G.get_edge_data(source, target) is None:
-            source = ast.literal_eval(source)
-            target = ast.literal_eval(target)
-            total_distance += calculate_distance(source[0], source[1], target[0], target[1])
-        else: 
-            total_distance += new_G.get_edge_data(source, target)[0]['length']
-    return total_distance
+    return [total_distance, "artificial edges: " + str(artificial_edges)]
 
 def eulerize_base(G):
     return nx.eulerize(G)
@@ -43,7 +41,6 @@ def eulerize_minimize_weights(old_G):
     print("started eulerize_minimize_weights")
     # Find all nodes with odd degree
     odd_degree_nodes = [node for node, degree in G.degree() if degree % 2 == 1]
-    #print("odd degree nodes: ", odd_degree_nodes)
 
     # Calculate shortest paths between all pairs of odd-degree nodes
     shortest_paths = dict(nx.all_pairs_shortest_path(G))
@@ -70,17 +67,9 @@ def eulerize_minimize_weights(old_G):
     print("odd degree nodes: ", odd_degree_nodes)
     return nx.eulerize(G)
 
-def calculate_distance(lon1, lat1, lon2, lat2):
-    # approximate radius of earth in miles
-    R = 3958.8
-
-    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-    distance = R * c
-    return distance
+def calculate_distance(lon1, lat1, lon2, lat2, init_length_unit = "miles"):
+    geod = Geod(ellps = 'WGS84')
+    angle1, angle2, distance = geod.inv(lon1, lat1, lon2, lat2)
+    if init_length_unit == "kilometers":
+        return distance / 1000
+    return distance / 1609.344

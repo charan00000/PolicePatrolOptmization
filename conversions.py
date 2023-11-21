@@ -11,7 +11,6 @@ import osmnx as ox
 from shapely.geometry import MultiLineString, LineString
 
 def convert_to_graph_road_nodes(geojson_file, dest = 'new_graph.graphml'):
-    print("here")
     G = nx.Graph()
     with open(geojson_file, 'r') as f:
         geojson_data = json.load(f)
