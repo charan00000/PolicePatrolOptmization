@@ -61,7 +61,7 @@ conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson
 
 total_distance = find_euler_path.modify_graph(graphml_input = 'forsyth_major_bottom_left_roads.graphml',
                                               dest = 'euler_path_output.graphml',
-                                              method = "min_weights",
+                                              method = "min_weightsp",
                                               length_unit = "miles")
 
 conversions.convert_to_geojson('euler_path_output.graphml')
