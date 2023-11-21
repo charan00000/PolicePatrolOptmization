@@ -1,6 +1,6 @@
 # PolicePatrolOptimization
 3012 proj
-This repository is a supplement to our research paper for our combinatorics class.
+This repository is a supplement to our research paper for our combinatorics class. Check requirements.txt for all necessary imports
 
 
 
