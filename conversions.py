@@ -42,6 +42,7 @@ def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml', format
     """
     # Load the GeoJSON file
     gdf = gpd.read_file(geojson_file)
+    total_distance = 0
 
     # Create a NetworkX graph
     G = nx.MultiGraph()
@@ -60,16 +61,19 @@ def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml', format
                     rd_name = road[formatted_road_name]
                 else:
                     rd_name = "unnamed"
+                distance = calculate_distance_raw(source[0],
+                                                  source[1],
+                                                  target[0],
+                                                  target[1],
+                                                  in_init_length_unit = length_unit)
+                total_distance += distance
                 G.add_edge(source,
                            target,
                            name = rd_name,
-                           length = calculate_distance_raw(source[0],
-                                                           source[1],
-                                                           target[0],
-                                                           target[1],
-                                                           in_init_length_unit = length_unit))
+                           length = distance)
 
     # Save the graph to a GraphML file
+    G.graph['total_distance'] = total_distance
     nx.write_graphml(G, dest)
 
 def convert_to_geojson(graphml_file, dest = 'output_geojson.geojson', formatted_road_name = 'FullStName'):
