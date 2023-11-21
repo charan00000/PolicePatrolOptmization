@@ -20,3 +20,6 @@ The best way to visualize each graph is to display it using QGIS with either bot
 
 
 basic.geojson is a simple geojson representing a graph that's already in euler circuit form. When using it, make sure to set convert_to_graph_road_edges(has_road_names = False), as this graph doesnt have labeled road names.
+
+
+convert_to_py returns total distance of euelr circuit, which is used to determine eulerization effectiveness
