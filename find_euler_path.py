@@ -41,7 +41,8 @@ def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.
     
     nx.write_graphml(new_G, dest)
     old_length = G.graph['total_distance']
-    return [total_distance, old_length, "artificial edges: " + str(artificial_edges)]
+    circuit_length_multiplier = total_distance / old_length
+    return [total_distance, old_length, circuit_length_multiplier, "artificial edges: " + str(artificial_edges)]
 
 def eulerize_base(G):
     """
