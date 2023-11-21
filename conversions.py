@@ -25,7 +25,11 @@ def convert_to_graph_road_nodes(geojson_file, dest = 'new_graph.graphml'):
 
     nx.write_graphml(G, dest)
 
-def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml', formatted_road_name = 'FullStName', has_properties = True, length_unit = "Miles"):
+def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml',
+                                formatted_road_name = 'FullStName',
+                                formatted_road_type = 'RoadPosTyp',
+                                has_properties = True,
+                                length_unit = "Miles"):
     """
     Converts a GeoJSON file containing road data into a NetworkX graph with road edges.
 
@@ -59,8 +63,10 @@ def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml', format
             for source, target in zip(list(linestring.coords[:-1]), list(linestring.coords[1:])):
                 if has_properties:
                     rd_name = road[formatted_road_name]
+                    rd_type = road[formatted_road_type]
                 else:
                     rd_name = "unnamed"
+                    rd_type = 'none'
                 distance = calculate_distance_raw(source[0],
                                                   source[1],
                                                   target[0],
@@ -70,6 +76,7 @@ def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml', format
                 G.add_edge(source,
                            target,
                            name = rd_name,
+                           type = rd_type,
                            length = distance)
 
     # Save the graph to a GraphML file
