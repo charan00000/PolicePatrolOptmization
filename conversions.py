@@ -62,7 +62,7 @@ def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml',
         if isinstance(geometry, LineString):
             line = [geometry]
         elif isinstance(geometry, MultiLineString):
-            line = list(geometry)
+            raise TypeError("MultiLineString found in the data.")
         for linestring in line:
             for source, target in zip(list(linestring.coords[:-1]), list(linestring.coords[1:])):
                 if has_properties:
@@ -104,7 +104,7 @@ def convert_to_geojson(graphml_file, dest = 'output_geojson.geojson', formatted_
         None
     """
     G = nx.read_graphml(graphml_file)
-    gdf = gpd.GeoDataFrame(columns = ['order', formatted_road_name, "length", 'heading', 'geometry'])
+    gdf = gpd.GeoDataFrame(columns = ['order', formatted_road_name, "length", 'heading', 'road_type', 'geometry'])
     order = 0 # count for each road to be taken to follow eularian path. Later used to label each road
     first_road = list(G.edges(data = True))[0]
     previous_road_name = first_road[2]['name']
@@ -120,6 +120,7 @@ def convert_to_geojson(graphml_file, dest = 'output_geojson.geojson', formatted_
             formatted_road_name: [data['name']], # 'FullStName' is the column name for the road name in the geojson file
             'length': [data['length']], # 'Miles' is the column name for the road length in the geojson file
             'heading': [heading],
+            'road_type': [data['type']],
             'geometry': [LineString([source, target])]
         })
         gdf = pd.concat([gdf, new_road], ignore_index = True)

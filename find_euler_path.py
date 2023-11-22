@@ -40,7 +40,8 @@ def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.
         else:
             road_name = edge_data[0]['name']
             init_length = edge_data[0]['length']
-        new_G.add_edge(source, target, name = road_name, length = init_length)
+            init_type = edge_data[0]['type']
+        new_G.add_edge(source, target, name = road_name, length = init_length, type = init_type)
         total_distance += init_length
     
     nx.write_graphml(new_G, dest)

@@ -78,7 +78,7 @@ will produce a shorter eulerian path.
 this output is later printed to the console.
 """
 
-conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson',
+conversions.convert_to_graph_road_edges('Road_Centerlines.geojson',
                                         dest = 'forsyth_major_bottom_left_roads.graphml',
                                         formatted_road_name = 'FullStName',    # road name label
                                         formatted_road_type = 'RoadPosTyp',    # road type label
