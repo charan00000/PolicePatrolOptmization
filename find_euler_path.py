@@ -13,7 +13,7 @@ def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.
     Parameters:
     - graphml_input (str): Path to the input GraphML file.
     - dest (str): Path to the output GraphML file.
-    - method (str): Method for Eulerization. Can be "fleury" or "min_weights".
+    - method (str): Method for Eulerization. Can be "fleury" or "min_weights" or "dijkstra".
     - length_unit (str): Unit of length for calculating distances.
 
     Returns:
@@ -22,6 +22,8 @@ def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.
     G = nx.read_graphml(graphml_input)
     if method == "min_weights":
         euler_G = eulerize_minimize_weights(G)
+    elif method == "dijkstra":
+        euler_G = eulerize_minimize_weights_dijkistra(G)
     else:
         euler_G = eulerize_fleury(G)
     circuit = list(nx.eulerian_circuit(euler_G))
@@ -91,8 +93,58 @@ def eulerize_minimize_weights(old_G):
 
         if node1 in odd_degree_nodes and node2 in odd_degree_nodes:
 
-            # Add an edge between node1 and node2
-            G.add_edge(node1, node2)
+            # Duplicate all edges in the shortest path between node1 and node2
+            path = shortest_paths[node1][node2]
+            for i in range(len(path) - 1):
+                G.add_edge(path[i], path[i+1])
+
+            # Remove node1 and node2 from the list of nodes with odd degree
+            odd_degree_nodes.remove(node1)
+            odd_degree_nodes.remove(node2)
+    odd_degree_nodes = [node for node, degree in G.degree() if degree % 2 == 1]
+    print("odd degree nodes: ", odd_degree_nodes)
+    return nx.eulerize(G)
+
+def eulerize_minimize_weights_dijkistra(old_G):
+    """
+    Eulerize the given graph by adding edges between pairs of odd-degree nodes
+    to minimize the weights of the resulting Eulerian circuit.
+
+    Parameters:
+    old_G (networkx.Graph): The input graph.
+
+    Returns:
+    networkx.Graph: The Eulerized graph.
+    """
+    # Create a copy of the graph to avoid modifying the original graph
+    G = old_G.copy()
+    print("started eulerize_minimize_weights")
+    # Find all nodes with odd degree
+    odd_degree_nodes = [node for node, degree in G.degree() if degree % 2 == 1]
+
+    # Calculate shortest paths between all pairs of odd-degree nodes
+    shortest_paths = dict(nx.all_pairs_dijkstra_path(G, weight='length'))
+
+    # Calculate the lengths of the shortest paths
+    path_lengths = dict(nx.all_pairs_dijkstra_path_length(G, weight='length'))
+
+    # Create a priority queue of pairs of odd-degree nodes, with distances as priorities
+    pair_queue = [(path_lengths[node1][node2], node1, node2) for i, node1 in enumerate(odd_degree_nodes) for node2 in odd_degree_nodes[i+1:]]
+    heapq.heapify(pair_queue)
+
+    # While there are nodes with odd degree
+    while pair_queue:
+    
+        # Pop the pair with the shortest distance
+        _, node1, node2 = heapq.heappop(pair_queue)
+
+        if node1 in odd_degree_nodes and node2 in odd_degree_nodes:
+
+            # Duplicate all edges in the shortest path between node1 and node2
+            path = shortest_paths[node1][node2]
+            for i in range(len(path) - 1):
+                # Add the edge with the same weight as the original
+                G.add_edge(path[i], path[i+1], length=G[path[i]][path[i+1]][0]['length'])
 
             # Remove node1 and node2 from the list of nodes with odd degree
             odd_degree_nodes.remove(node1)

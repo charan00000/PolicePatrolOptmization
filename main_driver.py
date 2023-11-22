@@ -71,8 +71,7 @@ original data's labeling.
 find_euler_path.modify_graph() takes a graphml file and modifies it to be eulerian. The parameters 
 are defaulted so that it converts the file produced by convert_to_graph_road_edges(). There are two
 options for the method parameter: "fleury" and "min_weights". "fleury" is faster and more practical
-for most applications, but "min_weights" will produce a shorter path. Min_weights also created edges
-that don't necessarilty represent real roads.
+for most applications.
 will produce a shorter eulerian path.
 - this returns a list of three numbers in the from of 
 [(total distance of eulerian path), (total distance of original path), (eulerization distance increase multiplier), (number of artificial edges added)]
@@ -89,7 +88,7 @@ conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson
 
 attributes = find_euler_path.modify_graph(graphml_input = 'forsyth_major_bottom_left_roads.graphml',
                                               dest = 'euler_path_output.graphml',
-                                              method = "min_weights",
+                                              method = "dijksltra",
                                               length_unit = "miles")
 
 conversions.convert_to_geojson('euler_path_output.graphml')
