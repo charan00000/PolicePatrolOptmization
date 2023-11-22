@@ -31,6 +31,7 @@ def modify_graph(graphml_input='new_graph.graphml',
         euler_G = eulerize_built_in_weighted(G)
     else:
         euler_G = eulerize_built_in(G)
+    nx.write_graphml(euler_G, 'eulerized_graph.graphml')
     circuit = list(nx.eulerian_circuit(euler_G))
     nx.write_graphml(nx.MultiDiGraph(circuit), dest)
     new_G = nx.MultiDiGraph()
@@ -82,7 +83,9 @@ def eulerize_built_in_weighted(G):
     networkx.Graph: The Eulerized graph.
 
     References:
-
+    - Aric A. Hagberg, Daniel A. Schult and Pieter J. Swart, “Exploring network structure, dynamics, and
+      function using NetworkX”, in Proceedings of the 7th Python in Science Conference (SciPy2008),
+      Gäel Varoquaux, Travis Vaught, and Jarrod Millman (Eds), (Pasadena, CA USA), pp. 11–15, Aug 2008
     """
     if G.order() == 0:
         raise nx.NetworkXPointlessConcept("Cannot Eulerize null graph")
@@ -96,15 +99,11 @@ def eulerize_built_in_weighted(G):
     # get all shortest paths between vertices of odd degree
     odd_deg_pairs_paths = []
     for m, n in combinations(odd_degree_nodes, 2):
-        try:
-            # Check if there is an edge between nodes m and n
-            if 'length' not in G[m][n][0]:
-                raise ValueError(f"Edge between nodes {m} and {n} does not have a 'length' attribute")
-            path_dict = {n: nx.shortest_path(G, source=m, target=n, weight=lambda u, v, data: data[0]['length'])}
-            odd_deg_pairs_paths.append((m, path_dict))
-        except KeyError:
-            # Handle the case when there is no edge between nodes m and n
-            continue
+        path = nx.dijkstra_path(G, source=m, target=n, weight=lambda u, v, data: data[0]['length'])
+        for u, v in zip(path[:-1], path[1:]):
+            if int((lambda u, v, data: data[0]['length'])(u, v, G[u][v])) > 1000:
+                print("yes")
+        odd_deg_pairs_paths.append((m, {n: path}))
 
     # use the number of vertices in a graph + 1 as an upper bound on
     # the maximum length of a path in G
@@ -169,7 +168,6 @@ def eulerize_minimize_weights(old_G):
             path = shortest_paths[node_A][node_B]
             for i in range(len(path) - 1):
                 G.add_edge(path[i], path[i + 1])
-
             # Remove node1 and node2 from the list of nodes with odd degree
             odd_degree_nodes.remove(node_A)
             odd_degree_nodes.remove(node_B)
