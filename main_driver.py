@@ -78,6 +78,13 @@ will produce a shorter eulerian path.
 - this returns a list of three numbers in the from of 
 [(total distance of eulerian path), (total distance of original path), (eulerization distance increase multiplier), (number of artificial edges added)]
 this output is later printed to the console.
+
+
+
+
+
+
+- You can run this program as is, with no modifications to the parameters below, for an example eulerization and output visualized.
 """
 
 conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson',
@@ -90,9 +97,9 @@ conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson
 
 attributes = find_euler_path.modify_graph(graphml_input='forsyth_major_bottom_left_roads.graphml',
                                           dest='euler_path_output.graphml',
-                                          method="dijkkstra",
+                                          method="fleury",
                                           length_unit="miles")
 
 conversions.convert_to_geojson('euler_path_output.graphml')
 print(attributes)
-plot('output_geojson.geojson', time_delay=0)
+plot('output_geojson.geojson', time_delay=0.0000000001)
