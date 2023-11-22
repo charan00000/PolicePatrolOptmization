@@ -50,7 +50,7 @@ def modify_graph(graphml_input = 'new_graph.graphml', dest = 'euler_path_output.
 
 def eulerize_fleury(G):
     """
-    Eulerizes a graph by adding edges to make it Eulerian.
+    Eulerizes a graph by adding edges.
     Doesn't add an edge between nodes that dont already have a single edge between them
 
     Parameters:
@@ -82,25 +82,25 @@ def eulerize_minimize_weights(old_G):
     shortest_paths = dict(nx.all_pairs_shortest_path(G))
 
     # Create a priority queue of pairs of odd-degree nodes, with distances as priorities
-    pair_queue = [(len(shortest_paths[node1][node2]), node1, node2) for i, node1 in enumerate(odd_degree_nodes) for node2 in odd_degree_nodes[i+1:]]
+    pair_queue = [(len(shortest_paths[node_A][node_B]), node_A, node_B) for i, node_A in enumerate(odd_degree_nodes) for node_B in odd_degree_nodes[i+1:]]
     heapq.heapify(pair_queue)
 
     # While there are nodes with odd degree
     while pair_queue:
     
         # Pop the pair with the shortest distance
-        _, node1, node2 = heapq.heappop(pair_queue)
+        _, node_A, node_B = heapq.heappop(pair_queue)
 
-        if node1 in odd_degree_nodes and node2 in odd_degree_nodes:
+        if node_A in odd_degree_nodes and node_B in odd_degree_nodes:
 
             # Duplicate all edges in the shortest path between node1 and node2
-            path = shortest_paths[node1][node2]
+            path = shortest_paths[node_A][node_B]
             for i in range(len(path) - 1):
                 G.add_edge(path[i], path[i+1])
 
             # Remove node1 and node2 from the list of nodes with odd degree
-            odd_degree_nodes.remove(node1)
-            odd_degree_nodes.remove(node2)
+            odd_degree_nodes.remove(node_A)
+            odd_degree_nodes.remove(node_B)
     odd_degree_nodes = [node for node, degree in G.degree() if degree % 2 == 1]
     print("odd degree nodes: ", odd_degree_nodes)
     return nx.eulerize(G)
@@ -129,26 +129,26 @@ def eulerize_minimize_weights_dijkistra(old_G):
     path_lengths = dict(nx.all_pairs_dijkstra_path_length(G, weight='length'))
 
     # Create a priority queue of pairs of odd-degree nodes, with distances as priorities
-    pair_queue = [(path_lengths[node1][node2], node1, node2) for i, node1 in enumerate(odd_degree_nodes) for node2 in odd_degree_nodes[i+1:]]
+    pair_queue = [(path_lengths[node_A][node_B], node_A, node_B) for i, node_A in enumerate(odd_degree_nodes) for node_B in odd_degree_nodes[i+1:]]
     heapq.heapify(pair_queue)
 
     # While there are nodes with odd degree
     while pair_queue:
     
         # Pop the pair with the shortest distance
-        _, node1, node2 = heapq.heappop(pair_queue)
+        _, node_A, node_B = heapq.heappop(pair_queue)
 
-        if node1 in odd_degree_nodes and node2 in odd_degree_nodes:
+        if node_A in odd_degree_nodes and node_B in odd_degree_nodes:
 
             # Duplicate all edges in the shortest path between node1 and node2
-            path = shortest_paths[node1][node2]
+            path = shortest_paths[node_A][node_B]
             for i in range(len(path) - 1):
                 # Add the edge with the same weight as the original
                 G.add_edge(path[i], path[i+1], length=G[path[i]][path[i+1]][0]['length'])
                 print(G[path[i]][path[i+1]])
             # Remove node1 and node2 from the list of nodes with odd degree
-            odd_degree_nodes.remove(node1)
-            odd_degree_nodes.remove(node2)
+            odd_degree_nodes.remove(node_A)
+            odd_degree_nodes.remove(node_B)
     odd_degree_nodes = [node for node, degree in G.degree() if degree % 2 == 1]
     print("odd degree nodes: ", odd_degree_nodes)
     return nx.eulerize(G)
@@ -169,7 +169,7 @@ def calculate_distance_raw(lon1, lat1, lon2, lat2, in_init_length_unit = "miles"
 
     """
     geod = Geod(ellps = 'WGS84')
-    angle1, angle2, distance = geod.inv(lon1, lat1, lon2, lat2)
+    _, _, distance = geod.inv(lon1, lat1, lon2, lat2)
     if in_init_length_unit == "kilometers":
         return distance / 1000
     return distance / 1609.344

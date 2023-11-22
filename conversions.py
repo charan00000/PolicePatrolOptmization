@@ -13,6 +13,9 @@ from find_euler_path import calculate_distance_raw
 from shapely.geometry import MultiLineString, LineString
 
 def convert_to_graph_road_nodes(geojson_file, dest = 'new_graph.graphml'):
+    """
+    inactive
+    """
     G = nx.Graph()
     with open(geojson_file, 'r') as f:
         geojson_data = json.load(f)
