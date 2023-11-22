@@ -71,7 +71,7 @@ in "conversions.py". You can modify the find_multiplier() method there according
 original data's labeling. 
 
 find_euler_path.modify_graph() takes a graphml file and modifies it to be eulerian. The parameters 
-are defaulted so that it converts the file produced by convert_to_graph_road_edges(). There are two
+are defaulted so that it converts the file produced by convert_to_graph_road_edges(). There are three
 options for the method parameter: "fleury" and "min_weights". "fleury" is faster and more practical
 for most applications.
 will produce a shorter eulerian path.

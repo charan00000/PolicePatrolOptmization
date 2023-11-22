@@ -1,18 +1,19 @@
 import ast
 import math
-import geopandas as gpd 
+import geopandas as gpd
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy as sp
 import json
-import re 
+import re
 import lxml
 import osmnx as ox
 from find_euler_path import calculate_distance_raw
 from shapely.geometry import MultiLineString, LineString
 
-def convert_to_graph_road_nodes(geojson_file, dest = 'new_graph.graphml'):
+
+def convert_to_graph_road_nodes(geojson_file, dest='new_graph.graphml'):
     """
     inactive
     """
@@ -29,12 +30,13 @@ def convert_to_graph_road_nodes(geojson_file, dest = 'new_graph.graphml'):
 
     nx.write_graphml(G, dest)
 
-def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml',
-                                formatted_road_name = 'FullStName',
-                                formatted_road_type = 'MapClass',
-                                has_properties = True,
-                                length_unit = "Miles",
-                                weighted_by_road_type = True):
+
+def convert_to_graph_road_edges(geojson_file, dest='new_graph.graphml',
+                                formatted_road_name='FullStName',
+                                formatted_road_type='MapClass',
+                                has_properties=True,
+                                length_unit="Miles",
+                                weighted_by_road_type=True):
     """
     Converts a GeoJSON file containing road data into a NetworkX graph with road edges.
 
@@ -77,21 +79,22 @@ def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml',
                                                   source[1],
                                                   target[0],
                                                   target[1],
-                                                  in_init_length_unit = length_unit)
+                                                  in_init_length_unit=length_unit)
                 total_distance += distance
                 multiplier = find_multiplier(rd_type, formatted_road_type)
                 for _ in range(multiplier):
                     G.add_edge(source,
-                            target,
-                            name = rd_name,
-                            type = rd_type,
-                            length = distance)
+                               target,
+                               name=rd_name,
+                               type=rd_type,
+                               length=distance)
 
     # Save the graph to a GraphML file
     G.graph['total_distance'] = total_distance
     nx.write_graphml(G, dest)
 
-def convert_to_geojson(graphml_file, dest = 'output_geojson.geojson', formatted_road_name = 'FullStName'):
+
+def convert_to_geojson(graphml_file, dest='output_geojson.geojson', formatted_road_name='FullStName'):
     """
     Convert a GraphML file to GeoJSON format.
 
@@ -104,11 +107,11 @@ def convert_to_geojson(graphml_file, dest = 'output_geojson.geojson', formatted_
         None
     """
     G = nx.read_graphml(graphml_file)
-    gdf = gpd.GeoDataFrame(columns = ['order', formatted_road_name, "length", 'heading', 'road_type', 'geometry'])
-    order = 0 # count for each road to be taken to follow eularian path. Later used to label each road
-    first_road = list(G.edges(data = True))[0]
+    gdf = gpd.GeoDataFrame(columns=['order', formatted_road_name, "length", 'heading', 'road_type', 'geometry'])
+    order = 0  # count for each road to be taken to follow eulerian path. Later used to label each road
+    first_road = list(G.edges(data=True))[0]
     previous_road_name = first_road[2]['name']
-    for source, target, data in G.edges(data = True):
+    for source, target, data in G.edges(data=True):
         source = ast.literal_eval(source)
         target = ast.literal_eval(target)
         if data['name'] != previous_road_name:
@@ -117,14 +120,16 @@ def convert_to_geojson(graphml_file, dest = 'output_geojson.geojson', formatted_
         heading = find_heading(source, target)
         new_road = gpd.GeoDataFrame({
             'order': [str(order) + ", "],
-            formatted_road_name: [data['name']], # 'FullStName' is the column name for the road name in the geojson file
-            'length': [data['length']], # 'Miles' is the column name for the road length in the geojson file
+            formatted_road_name: [data['name']],
+            # 'FullStName' is the column name for the road name in the geojson file
+            'length': [data['length']],  # 'Miles' is the column name for the road length in the geojson file
             'heading': [heading],
             'road_type': [data['type']],
             'geometry': [LineString([source, target])]
         })
-        gdf = pd.concat([gdf, new_road], ignore_index = True)
-    gdf.to_file(dest, driver = 'GeoJSON')
+        gdf = pd.concat([gdf, new_road], ignore_index=True)
+    gdf.to_file(dest, driver='GeoJSON')
+
 
 def find_heading(source, target):
     """
@@ -133,7 +138,7 @@ def find_heading(source, target):
         θ = atan2(sin(Δlong).cos(lat2),
                   cos(lat1).sin(lat2) − sin(lat1).cos(lat2).cos(Δlong))
     :Parameters:
-      - `source: The tuple representing the longitude/lattitude for the
+      - `source: The tuple representing the longitude/latitude for the
         first point. Latitude and longitude must be in decimal degrees
       - `target: The tuple representing the long/lat for the
         second point. Latitude and longitude must be in decimal degrees
@@ -152,7 +157,7 @@ def find_heading(source, target):
 
     x = math.sin(diffLong) * math.cos(lat2)
     y = math.cos(lat1) * math.sin(lat2) - (math.sin(lat1)
-            * math.cos(lat2) * math.cos(diffLong))
+                                           * math.cos(lat2) * math.cos(diffLong))
 
     initial_bearing = math.atan2(x, y)
 
@@ -164,19 +169,20 @@ def find_heading(source, target):
 
     return compass_bearing
 
+
 def find_multiplier(rd_type, rd_format):
     if rd_format == "MapClass":
         triple = ["Limited Access Freeway"]
         double = ["Major Rd"]
         if rd_type in triple:
             return 3
-        if rd_type in double:    
+        if rd_type in double:
             return 2
     elif rd_format == "RoadPosTyp":
         triple = ["Highway"]
         double = ["Parkway", "Boulevard"]
         if rd_type in triple:
             return 3
-        if rd_type in double:    
+        if rd_type in double:
             return 2
     return 1
