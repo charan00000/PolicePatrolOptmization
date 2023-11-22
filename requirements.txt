@@ -29,7 +29,6 @@ osmnx==1.7.1
 packaging==23.2
 pandas==2.1.2
 Pillow==10.1.0
-postman-problems==0.3
 pyparsing==3.1.1
 pyproj==3.6.1
 python-dateutil==2.8.2
