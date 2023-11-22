@@ -23,11 +23,4 @@ basic.geojson is a simple geojson representing a graph that's already in euler c
 
 basic_not_euler.geojson is similar to basic.geojson but with one leaf node. 
 
-convert_to_py returns total distance of euler circuit, which is used to determine eulerization effectiveness
-
-things to know:
-    - Geojson files with multi line strings are not supported. This is due to the fact that there is no requirement for lines to connect to eachother in a multiline string. The best way to exclude multiline strings we have seen is to filter out neighborhood roads before collecting your geojson file. In the odd case that doing so would result in a disconnected graph, try restricting the portion of map that you collect your geojson from.
-    - you can adjust the weighting of the graph by setting the parameter in the convert_to_graph_road_edges() function's parameter 'weighted_by_road_type' to True. This will add duplicate edges for highways and busier roads.
-          - If you supply your own geojson data and wish to factor in road type, you will have to look at your geojson and find the corresponding label for road type (highway, parkway, etc or major road, minor road, etc) and road name. You will have to supply those labels as their appropriate keyword parameters in the convert_to_graph_road_edges() function for the code to work at all.
-          - You can modify the weighting of the graph by changing the values in the find_multiplier() function in conversions.py
-    - The convert_to_graph_road_edges() function has a parameter called 'has_road_names'. If you set this to True, you will have to supply a geojson file with road names. If you set this to False, you will have to supply a geojson file with road types. If you set this to True and supply a geojson file without road names, the code will not work. If you set this to False and supply a geojson file with road names, the code will not work.
+convert_to_py returns total distance of euelr circuit, which is used to determine eulerization effectiveness
