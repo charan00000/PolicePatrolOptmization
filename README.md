@@ -19,6 +19,7 @@ The best ways to visualize each graph are:
     - Headings are in degrees (0-360), with 0 = due north, 90 = due east, 180 = due south, and 270 = due west
    
   - (easiest) use plot() function in main method, and set time_delay keyword parameter = around .01
+      - This way currently doesn't show the underlying map of the earth, making it hard to visualize road routes if you're not familiar with the area. You can visualize the graph, without arrows, on the github repository website by opening output_geojson.geojson in order to help.
 
 basic.geojson is a simple geojson representing a graph that's already in euler circuit form. When using it, make sure to set convert_to_graph_road_edges(has_road_names = False), as this graph doesnt have labeled road names.
 
