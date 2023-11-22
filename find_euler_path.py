@@ -70,6 +70,8 @@ def eulerize_built_in(G):
 
 def eulerize_built_in_weighted(G):
     """
+    WORK IN PROGRESS NOT READY YET
+
     Mostly contains source code from networkx eulerize() function with few tweaks to account for road segment length.
     Doesn't add an edge between nodes that dont already have a single edge between them
 
@@ -80,7 +82,7 @@ def eulerize_built_in_weighted(G):
     networkx.Graph: The Eulerized graph.
 
     References:
-    
+
     """
     if G.order() == 0:
         raise nx.NetworkXPointlessConcept("Cannot Eulerize null graph")
@@ -92,10 +94,17 @@ def eulerize_built_in_weighted(G):
         return G
 
     # get all shortest paths between vertices of odd degree
-    odd_deg_pairs_paths = [
-        (m, {n: nx.shortest_path(G, source=m, target=n)})
-        for m, n in combinations(odd_degree_nodes, 2)
-    ]
+    odd_deg_pairs_paths = []
+    for m, n in combinations(odd_degree_nodes, 2):
+        try:
+            # Check if there is an edge between nodes m and n
+            if 'length' not in G[m][n][0]:
+                raise ValueError(f"Edge between nodes {m} and {n} does not have a 'length' attribute")
+            path_dict = {n: nx.shortest_path(G, source=m, target=n, weight=lambda u, v, data: data[0]['length'])}
+            odd_deg_pairs_paths.append((m, path_dict))
+        except KeyError:
+            # Handle the case when there is no edge between nodes m and n
+            continue
 
     # use the number of vertices in a graph + 1 as an upper bound on
     # the maximum length of a path in G
