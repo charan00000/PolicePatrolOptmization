@@ -32,7 +32,8 @@ def modify_graph(graphml_input='new_graph.graphml',
     else:
         euler_G = eulerize_built_in(G)
     nx.write_graphml(euler_G, 'eulerized_graph.graphml')
-    circuit = list(nx.eulerian_circuit(euler_G))
+    #circuit = list(nx.eulerian_circuit(euler_G))
+    circuit = trotter(euler_G)
     nx.write_graphml(nx.MultiDiGraph(circuit), dest)
     new_G = nx.MultiDiGraph()
     total_distance = 0
@@ -127,7 +128,6 @@ def eulerize_built_in_weighted(G):
         G.add_edges_from(nx.utils.pairwise(path))
     return G
 
-    
 
 def eulerize_minimize_weights(old_G):
     """
@@ -262,6 +262,7 @@ def calculate_distance(source, target, init_length_unit="miles"):
                                   tup_target[1],
                                   in_init_length_unit=init_length_unit)
 
+
 def trotter(G):
     """
     Trotter's algorithm for finding an Euler path in a graph.
@@ -301,4 +302,5 @@ def trotter(G):
         euler_path += path
 
     # Return the Euler path
+    print(euler_path)
     return euler_path
