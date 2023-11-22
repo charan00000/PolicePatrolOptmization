@@ -4,11 +4,13 @@ import matplotlib.pyplot as plt
 import heapq
 from itertools import combinations
 from pyproj import Geod
+from networkx.utils import pairwise
 
 
 def modify_graph(graphml_input='new_graph.graphml',
                  dest='euler_path_output.graphml',
-                 method="built_in",
+                 euler_form_method="built_in",
+                 euler_order_method="built_in",
                  length_unit="miles"):
     """
     Modifies a graph by finding an Euler path and writing the modified graph to a GraphML file.
@@ -23,17 +25,19 @@ def modify_graph(graphml_input='new_graph.graphml',
     - list: A list containing the total distance of the Euler path and the number of artificial edges created.
     """
     G = nx.read_graphml(graphml_input)
-    if method == "min_weights":
+    if euler_form_method == "min_weights":
         euler_G = eulerize_minimize_weights(G)
-    elif method == "dijkstra":
+    elif euler_form_method == "dijkstra":
         euler_G = eulerize_minimize_weights_dijkistra(G)
-    elif method == "built_in_weighted":
+    elif euler_form_method == "built_in_weighted":
         euler_G = eulerize_built_in_weighted(G)
     else:
         euler_G = eulerize_built_in(G)
     nx.write_graphml(euler_G, 'eulerized_graph.graphml')
-    #circuit = list(nx.eulerian_circuit(euler_G))
-    circuit = trotter(euler_G)
+    if euler_order_method == "trotter":
+        circuit = trotter(euler_G)
+    else:
+        circuit = list(nx.eulerian_circuit(euler_G))
     nx.write_graphml(nx.MultiDiGraph(circuit), dest)
     new_G = nx.MultiDiGraph()
     total_distance = 0
@@ -265,7 +269,7 @@ def calculate_distance(source, target, init_length_unit="miles"):
 
 def trotter(G):
     """
-    Trotter's algorithm for finding an Euler path in a graph.
+    Trotter's algorithm from the lecture videos for finding an Euler path in a graph.
 
     Parameters:
     G (networkx.Graph): The input graph.
@@ -276,31 +280,35 @@ def trotter(G):
     # Create a copy of the graph to avoid modifying the original graph
     G = G.copy()
 
-    # Find all nodes with odd degree
-    odd_degree_nodes = [node for node, degree in G.degree() if degree % 2 == 1]
+    # Start at an arbitrary node (let's choose the first node in the graph)
+    current_node = list(G.nodes)[0]
 
-    # Create a list to store the nodes in the Euler path
-    euler_path = []
+    # Create a list to store the nodes in the Euler circuit
+    euler_circuit = [current_node]
 
-    # While there are nodes with odd degree
-    while odd_degree_nodes:
+    # Create a list to store the nodes in the current path
+    current_path = [current_node]
 
-        # Select the first node with odd degree
-        node = odd_degree_nodes[0]
+    while current_path:
+        # If the current node has neighbors
+        if G[current_node]:
+            # Select the neighbor with the lowest number
+            next_node = min(G.neighbors(current_node))
 
-        # Find a path from the selected node to another node with odd degree
-        path = nx.shortest_path(G, source=node, target=odd_degree_nodes[1])
+            # Remove the edge between the current node and the next node
+            G.remove_edge(current_node, next_node)
 
-        # Remove the path from the graph
-        G.remove_edges_from(nx.utils.pairwise(path))
+            # Move to the next node
+            current_node = next_node
 
-        # Remove the nodes in the path from the list of nodes with odd degree
-        odd_degree_nodes.remove(node)
-        odd_degree_nodes.remove(odd_degree_nodes[1])
+            # Add the next node to the current path
+            current_path.append(current_node)
+        else:
+            # If the current node has no neighbors, add it to the Euler circuit
+            euler_circuit.insert(euler_circuit.index(current_path[0]) + 1, current_node)
 
-        # Add the path to the Euler path
-        euler_path += path
+            # Move back to the previous node in the current path
+            current_node = current_path.pop()
 
-    # Return the Euler path
-    print(euler_path)
-    return euler_path
+    euler_circuit_edge_list = list(pairwise(euler_circuit))
+    return euler_circuit_edge_list
