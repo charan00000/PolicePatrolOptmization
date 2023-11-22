@@ -277,38 +277,30 @@ def trotter(G):
     Returns:
     list: A list containing the nodes in the Euler path.
     """
-    # Create a copy of the graph to avoid modifying the original graph
     G = G.copy()
 
-    # Start at an arbitrary node (let's choose the first node in the graph)
+    #choose the first node in the graph
     current_node = list(G.nodes)[0]
 
-    # Create a list to store the nodes in the Euler circuit
-    euler_circuit = [current_node]
+    # Create a list to store the nodes in the whole circuit
+    total_circuit = [current_node]
 
     # Create a list to store the nodes in the current path
     current_path = [current_node]
 
     while current_path:
-        # If the current node has neighbors
         if G[current_node]:
-            # Select the neighbor with the lowest number
+            # Select the neighbor with the lowest number and remove edge between them
             next_node = min(G.neighbors(current_node))
-
-            # Remove the edge between the current node and the next node
             G.remove_edge(current_node, next_node)
-
-            # Move to the next node
             current_node = next_node
-
-            # Add the next node to the current path
             current_path.append(current_node)
         else:
             # If the current node has no neighbors, add it to the Euler circuit
-            euler_circuit.insert(euler_circuit.index(current_path[0]) + 1, current_node)
+            total_circuit.insert(total_circuit.index(current_path[0]) + 1, current_node)
 
             # Move back to the previous node in the current path
             current_node = current_path.pop()
 
-    euler_circuit_edge_list = list(pairwise(euler_circuit))
+    euler_circuit_edge_list = list(pairwise(total_circuit))
     return euler_circuit_edge_list
