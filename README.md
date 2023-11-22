@@ -18,7 +18,7 @@ The best ways to visualize each graph are:
   - display it using QGIS with either both headings and order columns as labels, or as orders labeled and the geojson file pulled up alongside the QGIS window, reading the edges in order and paying attention to the headings.
     - Headings are in degrees (0-360), with 0 = due north, 90 = due east, 180 = due south, and 270 = due west
    
-  - use plot() function in main method, and set time_delay keyword parameter = around .01
+  - (easiest) use plot() function in main method, and set time_delay keyword parameter = around .01
 
 basic.geojson is a simple geojson representing a graph that's already in euler circuit form. When using it, make sure to set convert_to_graph_road_edges(has_road_names = False), as this graph doesnt have labeled road names.
 
