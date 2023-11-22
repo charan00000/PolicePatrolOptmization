@@ -4,6 +4,7 @@ import find_euler_path
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
+#scroll down
 
 def plot(geojson_file, time_delay = 0, arrow_spacing = 15):
     """
@@ -51,17 +52,44 @@ def plot(geojson_file, time_delay = 0, arrow_spacing = 15):
     #ctx.add_basemap(ax)
     plt.show()
 
+"""
+The lines below are the important ones. Here, you can run all the code from the rest
+of the repository.
 
-# these lines are the important ones
+convert_to_graph_road_edges() converts a GeoJSON file to a NetworkX graph with road edges.
+If you use your own geojson data, and its not from forsyth county ga, you will need to verify
+that the geojson data is in the correct format and enter the appropriate label for road type
+and road name as keyword parameters below. If you are using data that doesn't have names for 
+each road, make sure to set has_properties to False. You can also set weighted_by_road_type 
+to false if you want to minimize the length of the whole path and don't want certain roads to 
+be traversed more times than others. 
+
+- If weighted_by_road_type is True, the multipliers will default to being setup as can be seen
+in "conversions.py". You can modify the find_multiplier() method there according to your
+original data's labeling. 
+
+find_euler_path.modify_graph() takes a graphml file and modifies it to be eulerian. The parameters 
+are defaulted so that it converts the file produced by convert_to_graph_road_edges(). There are two
+options for the method parameter: "fleury" and "min_weights". "fleury" is faster and more practical
+for most applications, but "min_weights" will produce a shorter path. Min_weights also created edges
+that don't necessarilty represent real roads.
+will produce a shorter eulerian path.
+- this returns a list of three numbers in the from of 
+[(total distance of eulerian path), (total distance of original path), (eulerization distance increase multiplier), (number of artificial edges added)]
+this output is later printed to the console.
+"""
 
 conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson',
                                         dest = 'forsyth_major_bottom_left_roads.graphml',
+                                        formatted_road_name = 'FullStName',    # road name label
+                                        formatted_road_type = 'RoadPosTyp',    # road type label
                                         has_properties = True,
-                                        length_unit = 'miles')
+                                        length_unit = 'miles',
+                                        weighted_by_road_type = True)  # toggle for multiplying busy roads
 
 attributes = find_euler_path.modify_graph(graphml_input = 'forsyth_major_bottom_left_roads.graphml',
                                               dest = 'euler_path_output.graphml',
-                                              method = "fleury",
+                                              method = "min_weights",
                                               length_unit = "miles")
 
 conversions.convert_to_geojson('euler_path_output.graphml')

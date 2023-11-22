@@ -7,6 +7,7 @@ import pandas as pd
 import scipy as sp
 import json
 import re 
+import lxml
 import osmnx as ox
 from find_euler_path import calculate_distance_raw
 from shapely.geometry import MultiLineString, LineString
@@ -27,9 +28,10 @@ def convert_to_graph_road_nodes(geojson_file, dest = 'new_graph.graphml'):
 
 def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml',
                                 formatted_road_name = 'FullStName',
-                                formatted_road_type = 'RoadPosTyp',
+                                formatted_road_type = 'MapClass',
                                 has_properties = True,
-                                length_unit = "Miles"):
+                                length_unit = "Miles",
+                                weighted_by_road_type = True):
     """
     Converts a GeoJSON file containing road data into a NetworkX graph with road edges.
 
@@ -58,7 +60,6 @@ def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml',
             line = [geometry]
         elif isinstance(geometry, MultiLineString):
             line = list(geometry)
-
         for linestring in line:
             for source, target in zip(list(linestring.coords[:-1]), list(linestring.coords[1:])):
                 if has_properties:
@@ -66,18 +67,22 @@ def convert_to_graph_road_edges(geojson_file, dest = 'new_graph.graphml',
                     rd_type = road[formatted_road_type]
                 else:
                     rd_name = "unnamed"
-                    rd_type = 'none'
+                    rd_type = 'no_type'
+                if rd_type is None:
+                    rd_type = 'no_type'
                 distance = calculate_distance_raw(source[0],
                                                   source[1],
                                                   target[0],
                                                   target[1],
                                                   in_init_length_unit = length_unit)
                 total_distance += distance
-                G.add_edge(source,
-                           target,
-                           name = rd_name,
-                           type = rd_type,
-                           length = distance)
+                multiplier = find_multiplier(rd_type, formatted_road_type)
+                for _ in range(multiplier):
+                    G.add_edge(source,
+                            target,
+                            name = rd_name,
+                            type = rd_type,
+                            length = distance)
 
     # Save the graph to a GraphML file
     G.graph['total_distance'] = total_distance
@@ -155,3 +160,19 @@ def find_heading(source, target):
 
     return compass_bearing
 
+def find_multiplier(rd_type, rd_format):
+    if rd_format == "MapClass":
+        triple = ["Limited Access Freeway"]
+        double = ["Major Rd"]
+        if rd_type in triple:
+            return 3
+        if rd_type in double:    
+            return 2
+    elif rd_format == "RoadPosTyp":
+        triple = ["Highway"]
+        double = ["Parkway", "Boulevard"]
+        if rd_type in triple:
+            return 3
+        if rd_type in double:    
+            return 2
+    return 1
