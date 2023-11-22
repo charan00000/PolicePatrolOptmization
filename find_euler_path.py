@@ -99,10 +99,7 @@ def eulerize_built_in_weighted(G):
     # get all shortest paths between vertices of odd degree
     odd_deg_pairs_paths = []
     for m, n in combinations(odd_degree_nodes, 2):
-        path = nx.dijkstra_path(G, source=m, target=n, weight=lambda u, v, data: data[0]['length'])
-        for u, v in zip(path[:-1], path[1:]):
-            if int((lambda u, v, data: data[0]['length'])(u, v, G[u][v])) > 1000:
-                print("yes")
+        path = nx.dijkstra_path(G, source=m, target=n, weight=(lambda u,v, data:  G[u][v][0].get('weight', 1)))
         odd_deg_pairs_paths.append((m, {n: path}))
 
     # use the number of vertices in a graph + 1 as an upper bound on
@@ -264,3 +261,44 @@ def calculate_distance(source, target, init_length_unit="miles"):
                                   tup_target[0],
                                   tup_target[1],
                                   in_init_length_unit=init_length_unit)
+
+def trotter(G):
+    """
+    Trotter's algorithm for finding an Euler path in a graph.
+
+    Parameters:
+    G (networkx.Graph): The input graph.
+
+    Returns:
+    list: A list containing the nodes in the Euler path.
+    """
+    # Create a copy of the graph to avoid modifying the original graph
+    G = G.copy()
+
+    # Find all nodes with odd degree
+    odd_degree_nodes = [node for node, degree in G.degree() if degree % 2 == 1]
+
+    # Create a list to store the nodes in the Euler path
+    euler_path = []
+
+    # While there are nodes with odd degree
+    while odd_degree_nodes:
+
+        # Select the first node with odd degree
+        node = odd_degree_nodes[0]
+
+        # Find a path from the selected node to another node with odd degree
+        path = nx.shortest_path(G, source=node, target=odd_degree_nodes[1])
+
+        # Remove the path from the graph
+        G.remove_edges_from(nx.utils.pairwise(path))
+
+        # Remove the nodes in the path from the list of nodes with odd degree
+        odd_degree_nodes.remove(node)
+        odd_degree_nodes.remove(odd_degree_nodes[1])
+
+        # Add the path to the Euler path
+        euler_path += path
+
+    # Return the Euler path
+    return euler_path

@@ -83,7 +83,7 @@ this output is later printed to the console.
 
 - You can run this program as is, with no modifications to the parameters below, for an example eulerization and output visualized.
 """
-"""
+
 conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson',
                                         dest='forsyth_major_bottom_left_roads.graphml',
                                         formatted_road_name='FullStName',  # road name label
@@ -91,7 +91,7 @@ conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson
                                         has_properties=True,
                                         length_unit='miles',
                                         weighted_by_road_type=True)  # toggle for multiplying busy roads
-"""
+
 attributes = find_euler_path.modify_graph(graphml_input='forsyth_major_bottom_left_roads.graphml',
                                           dest='euler_path_output.graphml',
                                           method="built_in_weighted",

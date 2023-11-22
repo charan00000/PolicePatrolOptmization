@@ -8318,7 +8318,7 @@
 <edge source="(-84.21531201736332, 34.11410052919399, 0.0)" target="(-84.21540156501207, 34.11406907998308, 0.0)" id="0">
   <data key="d1">Ronald Reagan Blvd</data>
   <data key="d2">Boulevard</data>
-  <data key="d3">50000</data>
+  <data key="d3">0.005572500610619327</data>
 </edge>
 <edge source="(-84.21531201736332, 34.11410052919399, 0.0)" target="(-84.21540156501207, 34.11406907998308, 0.0)" id="1">
   <data key="d1">Ronald Reagan Blvd</data>
