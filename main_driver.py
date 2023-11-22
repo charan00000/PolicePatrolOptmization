@@ -5,7 +5,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 
 
-# scroll down
+# scroll down past this function
 
 def plot(geojson_file, time_delay=0, arrow_spacing=15):
     """
@@ -72,7 +72,7 @@ original data's labeling.
 
 find_euler_path.modify_graph() takes a graphml file and modifies it to be eulerian. The parameters 
 are defaulted so that it converts the file produced by convert_to_graph_road_edges(). There are three
-options for the method parameter: "fleury" and "min_weights". "fleury" is faster and more practical
+options for the method parameter: "built_in" and "min_weights". "built_in" is faster and more practical
 for most applications.
 will produce a shorter eulerian path.
 - this returns a list of three numbers in the from of 
@@ -97,7 +97,7 @@ conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson
 
 attributes = find_euler_path.modify_graph(graphml_input='forsyth_major_bottom_left_roads.graphml',
                                           dest='euler_path_output.graphml',
-                                          method="fleury",
+                                          method="built_in_weightled",
                                           length_unit="miles")
 
 conversions.convert_to_geojson('euler_path_output.graphml')

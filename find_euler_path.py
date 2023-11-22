@@ -2,12 +2,13 @@ import ast
 import networkx as nx
 import matplotlib.pyplot as plt
 import heapq
+from itertools import combinations
 from pyproj import Geod
 
 
 def modify_graph(graphml_input='new_graph.graphml',
                  dest='euler_path_output.graphml',
-                 method="fleury",
+                 method="built_in",
                  length_unit="miles"):
     """
     Modifies a graph by finding an Euler path and writing the modified graph to a GraphML file.
@@ -15,7 +16,7 @@ def modify_graph(graphml_input='new_graph.graphml',
     Parameters:
     - graphml_input (str): Path to the input GraphML file.
     - dest (str): Path to the output GraphML file.
-    - method (str): Method for Eulerization. Can be "fleury" or "min_weights" or "dijkstra".
+    - method (str): Method for Eulerization. Can be "built_in" or "min_weights" or "dijkstra".
     - length_unit (str): Unit of length for calculating distances.
 
     Returns:
@@ -26,8 +27,10 @@ def modify_graph(graphml_input='new_graph.graphml',
         euler_G = eulerize_minimize_weights(G)
     elif method == "dijkstra":
         euler_G = eulerize_minimize_weights_dijkistra(G)
+    elif method == "built_in_weighted":
+        euler_G = eulerize_built_in_weighted(G)
     else:
-        euler_G = eulerize_fleury(G)
+        euler_G = eulerize_built_in(G)
     circuit = list(nx.eulerian_circuit(euler_G))
     nx.write_graphml(nx.MultiDiGraph(circuit), dest)
     new_G = nx.MultiDiGraph()
@@ -52,7 +55,7 @@ def modify_graph(graphml_input='new_graph.graphml',
     return [total_distance, old_length, circuit_length_multiplier, "artificial edges: " + str(artificial_edges)]
 
 
-def eulerize_fleury(G):
+def eulerize_built_in(G):
     """
     Eulerizes a graph by adding edges.
     Doesn't add an edge between nodes that dont already have a single edge between them
@@ -65,6 +68,61 @@ def eulerize_fleury(G):
     """
     return nx.eulerize(G)
 
+def eulerize_built_in_weighted(G):
+    """
+    Mostly contains source code from networkx eulerize() function with few tweaks to account for road segment length.
+    Doesn't add an edge between nodes that dont already have a single edge between them
+
+    Parameters:
+    G (networkx.Graph): The input graph.
+
+    Returns:
+    networkx.Graph: The Eulerized graph.
+
+    References:
+    
+    """
+    if G.order() == 0:
+        raise nx.NetworkXPointlessConcept("Cannot Eulerize null graph")
+    if not nx.is_connected(G):
+        raise nx.NetworkXError("G is not connected")
+    odd_degree_nodes = [n for n, d in G.degree() if d % 2 == 1]
+    G = nx.MultiGraph(G)
+    if len(odd_degree_nodes) == 0:
+        return G
+
+    # get all shortest paths between vertices of odd degree
+    odd_deg_pairs_paths = [
+        (m, {n: nx.shortest_path(G, source=m, target=n)})
+        for m, n in combinations(odd_degree_nodes, 2)
+    ]
+
+    # use the number of vertices in a graph + 1 as an upper bound on
+    # the maximum length of a path in G
+    upper_bound_on_max_path_length = len(G) + 1
+
+    # use "len(G) + 1 - len(P)",
+    # where P is a shortest path between vertices n and m,
+    # as edge-weights in a new graph
+    # store the paths in the graph for easy indexing later
+    Gp = nx.Graph()
+    for n, Ps in odd_deg_pairs_paths:
+        for m, P in Ps.items():
+            if n != m:
+                Gp.add_edge(
+                    m, n, weight=upper_bound_on_max_path_length - len(P), path=P
+                )
+
+    # find the minimum weight matching of edges in the weighted graph
+    best_matching = nx.Graph(list(nx.max_weight_matching(Gp)))
+
+    # duplicate each edge along each path in the set of paths in Gp
+    for m, n in best_matching.edges():
+        path = Gp[m][n]["path"]
+        G.add_edges_from(nx.utils.pairwise(path))
+    return G
+
+    
 
 def eulerize_minimize_weights(old_G):
     """
