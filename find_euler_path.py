@@ -145,7 +145,7 @@ def eulerize_minimize_weights_dijkistra(old_G):
             for i in range(len(path) - 1):
                 # Add the edge with the same weight as the original
                 G.add_edge(path[i], path[i+1], length=G[path[i]][path[i+1]][0]['length'])
-
+                print(G[path[i]][path[i+1]])
             # Remove node1 and node2 from the list of nodes with odd degree
             odd_degree_nodes.remove(node1)
             odd_degree_nodes.remove(node2)
