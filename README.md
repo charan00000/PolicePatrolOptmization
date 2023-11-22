@@ -27,7 +27,7 @@ basic_not_euler.geojson is similar to basic.geojson but with one leaf node.
 find_euler_circuit.modify() returns total distance of euelr circuit, which is used to determine eulerization effectiveness
 
 things to know:
-  - you can have busier roads by duplicating edges represented by busy roads. This is done by convert_to_graph_road_edges()'s keyword parameter weighted_by_road_type. set it to True
+  - you can account for busier roads by duplicating edges represented by busy roads. This is done by convert_to_graph_road_edges()'s keyword parameter weighted_by_road_type. set it to True
       - If you supply your own geojson data, look through it and find what its keys are for road type and road name (find how it labels road name and road type). Then supply them in as keyword parameters to convert_to_graph_road_edges()
   - If you supply your own geojson data, make sure there are no multi line strings in it. These are not supported because they can result in edges not being connected.
       - If you supply your own data and it has multilines, one possible solution is to go abck to where you downloaded the data and filter out neighborhood roads.
