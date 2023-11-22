@@ -74,6 +74,7 @@ def eulerize_built_in(G):
     """
     return nx.eulerize(G)
 
+
 def eulerize_built_in_weighted(G):
     """
     WORK IN PROGRESS NOT READY YET
