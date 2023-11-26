@@ -40,7 +40,7 @@ def plot(geojson_file, time_delay=0, arrow_spacing=15):
         ax.plot(*row['geometry'].xy, color='blue')
 
         # Add an arrow at the end of the line to represent the direction
-        if i % arrow_spacing == 0:
+        if i % arrow_spacing == 0 and time_delay == 0:
             ax.annotate('', xy=end, xytext=start, arrowprops=dict(facecolor='red', edgecolor='red'))
 
         # fig.canvas.draw()
@@ -96,9 +96,9 @@ conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson
 attributes = find_euler_path.modify_graph(graphml_input='forsyth_major_bottom_left_roads.graphml',
                                           dest='euler_path_output.graphml',
                                           euler_form_method="built_in",     #method to produce graph capable of forming euler circuit
-                                          euler_order_method="built_in",    #method to order euler circuit
+                                          euler_order_method="trotter",    #method to order euler circuit
                                           length_unit="miles")
 
 conversions.convert_to_geojson('euler_path_output.graphml')
 print(attributes)
-plot('output_geojson.geojson', time_delay=0.000000000)
+plot('output_geojson.geojson', time_delay=0.00000000000000000001)
