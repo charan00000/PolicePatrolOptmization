@@ -96,7 +96,7 @@ conversions.convert_to_graph_road_edges('forsyth_major_bottom_left_roads.geojson
 attributes = find_euler_path.modify_graph(graphml_input='forsyth_major_bottom_left_roads.graphml',
                                           dest='euler_path_output.graphml',
                                           euler_form_method="built_in",     # method to produce graph capable of forming euler circuit
-                                          euler_order_method="trottepr",    # method to order euler circuit
+                                          euler_order_method="trotter",    # method to order euler circuit
                                           length_unit="miles")
 
 conversions.convert_to_geojson('euler_path_output.graphml')
